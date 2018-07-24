@@ -20,14 +20,14 @@ android {
         //       returning null. Should find better way to do this.
         def path = ''
         def jake_path = new File('C:/Users/Jake')
-        def craig_path = new File('C:/Users/Craig')
+        def craig_path = new File('C:/Users/craig')
         def liz_path = new File('C:/Users/Elizabeth Morrow') //TODO: Update this with proper user
         def joseph_path = new File('C:/Users/joe')
 
         if(jake_path.exists())
             path = "C:/Users/Jake/AppData/Local/Android/Sdk/ndk-bundle/ndk-build.cmd"
         else if(craig_path.exists())
-            path = "C:/Users/Craig/AppData/Local/Android/Sdk/ndk-bundle/ndk-build.cmd"
+            path = "C:/Users/craig/AppData/Local/Android/Sdk/ndk-bundle/ndk-build.cmd"
         else if(liz_path.exists())
             path = "C:/Android/ndk-bundle/ndk-build.cmd"
         else if(joseph_path.exists())
