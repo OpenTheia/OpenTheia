@@ -6,6 +6,10 @@ import android.util.SparseArray;
 
 import com.google.android.gms.vision.text.TextBlock;
 
+import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+
 import java.util.ArrayList;
 
 // Screen Class - Created 2018-01-13
@@ -92,6 +96,40 @@ public class Screen {
 
     public ArrayList<ScreenElement> getAllElements() {
         return elements;
+    }
+
+    public void highlightAllScreenElements(Mat inputImage) {
+
+        if (elements != null) {
+            for (int i = 0; i < elements.size(); i++) {
+                ScreenElement visitor = elements.get(i);
+
+                highlightScreenElement(inputImage,visitor, new Scalar(255,0,0,255));
+
+            }
+        }
+    }
+
+    public void highlightScreenElement(Mat inputImage, ScreenElement visitor, Scalar color) {
+
+        if (visitor != null) {
+
+            org.opencv.core.Point[] openCVPointList = new org.opencv.core.Point[4];
+
+            double leftX = visitor.getX_base() * inputImage.width();
+            double topY = visitor.getY_base() * inputImage.height();
+            double rightX = (visitor.getX_base() + visitor.getX_Width())* inputImage.width();
+            double bottomY = (visitor.getY_base() + visitor.getY_length()) * inputImage.height();
+
+            openCVPointList[0] = new org.opencv.core.Point(leftX,topY);
+            openCVPointList[1] = new org.opencv.core.Point(rightX,topY);
+            openCVPointList[2] = new org.opencv.core.Point(rightX,bottomY);
+            openCVPointList[3] = new org.opencv.core.Point(leftX,bottomY);
+
+            for (int j = 0; j < 4; j++) {
+                Imgproc.line(inputImage,openCVPointList[j],openCVPointList[(j+1)%4], color, 3);
+            }
+        }
     }
 
 }
