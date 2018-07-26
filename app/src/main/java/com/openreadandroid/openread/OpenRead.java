@@ -7,11 +7,16 @@ import android.util.Log;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 
+import com.openreadandroid.mainapp.JavaCameraViewExd;
 import com.openreadandroid.openread.PointerIdentifier.FingerResult;
 
 import com.openreadandroid.openread.ScreenAnalyzer;
 
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import android.os.Handler;
 
 public class OpenRead {
 
@@ -23,6 +28,20 @@ public class OpenRead {
 			this.fingerPointerResult = fingerPointerResult;
 		}
 	}
+
+    // The state enum
+    private enum OpenReadState {
+        // Lower resolution state, when we are just findiing where the finger is
+        TRACKING_FINGER,
+        // Higher resolution state, when we are grabbing the screen for OCR
+        OBTAINING_OCR_SCREEN,
+        // Waiting state where no processing is done
+        WAITING
+    };
+
+	public static int lowScreenResolution = 500;
+	public static int highScreenResolution = 1400;
+	public static int cameraSwitchDelay = 4000;
 	
 	ScreenIdentifier screenGrabber;
 	PointerIdentifier fingerPointerGrabber;
@@ -38,8 +57,16 @@ public class OpenRead {
     private TextToSpeech textSpeaker;
     Boolean readingTextNoInterrupt;
     String lastReadText;
+
+    OpenReadState currentState;
+
+    public Mat prevImage;
+
+    Context applicationContext;
+
+    JavaCameraViewExd camera;
 	
-	public OpenRead(Context appContext) {
+	public OpenRead(Context appContext,JavaCameraViewExd inCamera) {
 		screenGrabber = new ScreenIdentifier();
 		fingerPointerGrabber = new PointerIdentifier();
 		screenAnalyzer = new ScreenAnalyzer(appContext);
@@ -57,47 +84,63 @@ public class OpenRead {
         });
         readingTextNoInterrupt = false;
         lastReadText = null;
+
+        currentState = OpenReadState.TRACKING_FINGER;
+
+        prevImage = null;
+
+        applicationContext = appContext;
+
+        camera = inCamera;
 	}
 	
 	public void setRefImage(Mat inputMat) {
 		screenGrabber.setRefImage(inputMat);
-		screenAnalyzer.analyzePhoto(inputMat);
-		currentScreen.GenerateScreen(screenAnalyzer.textBlocks,inputMat.width(),inputMat.height());
+		switchStates(OpenReadState.OBTAINING_OCR_SCREEN);
 	}
 	
 	public Mat getRefImage() {
 		return screenGrabber.getRefImage();
 	}
 	
-	public screenAnalysisResult analyzeImage(Mat inputMat) {
+	public void analyzeImage(Mat inputMat) {
 		
 		Mat inputHighlightImage = inputMat.clone();
-		PointerIdentifier.FingerResult fingerPointerResult = fingerPointerGrabber.getFingerPointer(inputMat,
-					inputHighlightImage,screenGrabber.getRefImage());
-		currentScreen.highlightAllScreenElements(inputHighlightImage);
+        prevImage = inputHighlightImage;
 
-		ScreenElement selectedElem;
+        if (currentState == OpenReadState.TRACKING_FINGER) {
+            PointerIdentifier.FingerResult fingerPointerResult = fingerPointerGrabber.getFingerPointer(inputMat,
+                    inputHighlightImage,screenGrabber.getRefImage());
+            currentScreen.highlightAllScreenElements(inputHighlightImage);
 
-		if (fingerPointerResult.fingerFound) {
-            selectedElem = currentScreen.GetElementAtPoint(fingerPointerResult.fingerPoint.x / inputHighlightImage.width(),fingerPointerResult.fingerPoint.y / inputHighlightImage.height());
-        } else {
-		    selectedElem = null;
-        }
+            ScreenElement selectedElem;
 
-		if (selectedElem != null) {
-            onElemCounter++;
-
-            if (onElemCounter > elemToReadCount) {
-                // Read Element
-                currentScreen.highlightScreenElement(inputHighlightImage,selectedElem, new Scalar(0,0,255,255));
-                readText(selectedElem.GetElementDescription());
+            // Logic to detect if on an element
+            if (fingerPointerResult.fingerFound) {
+                selectedElem = currentScreen.GetElementAtPoint(fingerPointerResult.fingerPoint.x / inputHighlightImage.width(),fingerPointerResult.fingerPoint.y / inputHighlightImage.height());
+            } else {
+                selectedElem = null;
             }
 
-        } else {
-		    onElemCounter = 0;
-		    lastReadText = null;
+            if (selectedElem != null) {
+                onElemCounter++;
+
+                if (onElemCounter > elemToReadCount) {
+                    // Read Element
+                    currentScreen.highlightScreenElement(inputHighlightImage,selectedElem, new Scalar(0,0,255,255));
+                    readText(selectedElem.GetElementDescription());
+                }
+
+            } else {
+                onElemCounter = 0;
+                lastReadText = null;
+            }
+
+        } else if (currentState == OpenReadState.OBTAINING_OCR_SCREEN) {
+            screenAnalyzer.analyzePhoto(inputMat);
+            currentScreen.GenerateScreen(screenAnalyzer.textBlocks,inputMat.width(),inputMat.height());
+            switchStates(OpenReadState.TRACKING_FINGER);
         }
-		return new screenAnalysisResult(fingerPointerResult);
 	}
 
     private void readText(String textToRead) {
@@ -110,5 +153,63 @@ public class OpenRead {
             // Do nothing
         }
     }
+
+    private void switchStates(OpenReadState inputState) {
+
+        Handler mainHandler;
+        Runnable myRunnable;
+
+        Log.d(TAG, "Entering state: " + inputState.toString());
+
+        switch (inputState) {
+            case TRACKING_FINGER:
+
+                // Get a handler that can be used to post to the main thread
+                mainHandler = new Handler(applicationContext.getMainLooper());
+
+
+                myRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        camera.disableView();
+                        camera.setMaxFrameSize(OpenRead.lowScreenResolution,OpenRead.lowScreenResolution);
+                        camera.enableView();
+                    }
+                };
+                mainHandler.post(myRunnable);
+
+
+                currentState = OpenReadState.TRACKING_FINGER;
+
+                break;
+
+            case OBTAINING_OCR_SCREEN:
+
+                // Get a handler that can be used to post to the main thread
+                mainHandler = new Handler(applicationContext.getMainLooper());
+
+                myRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        camera.disableView();
+                        camera.setMaxFrameSize(OpenRead.highScreenResolution,OpenRead.highScreenResolution);
+                        camera.enableView();
+                    } // This is your code
+                };
+                mainHandler.post(myRunnable);
+
+                currentState = OpenReadState.WAITING;
+
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        currentState = OpenReadState.OBTAINING_OCR_SCREEN;
+                    }
+                }, OpenRead.cameraSwitchDelay);
+
+                break;
+        }
+    }
+
 	
 }

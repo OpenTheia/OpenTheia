@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         javaCameraView.setVisibility(View.VISIBLE);
         javaCameraView.setCvCameraViewListener(this);
 
-        javaCameraView.setMaxFrameSize(800,800);
+        javaCameraView.setMaxFrameSize(OpenRead.lowScreenResolution,OpenRead.lowScreenResolution);
 
         javaCameraView.enableFpsMeter();
 
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             }
         });
 
-        readController = new OpenRead(this.getApplicationContext());
+        readController = new OpenRead(this.getApplicationContext(), javaCameraView);
     }
 
     @Override
@@ -160,18 +160,18 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         prevCameraImage = resizedImage;
 
-        OpenRead.screenAnalysisResult result = readController.analyzeImage(resizedImage);
-
-        Bitmap initial_bm;
-        initial_bm = Bitmap.createBitmap(resizedImage.cols(), resizedImage.rows(), Bitmap.Config.ARGB_8888);
+        readController.analyzeImage(resizedImage);
 
         Mat viewImageMat;
 
-        if (result.fingerPointerResult.fingerFound) {
-            viewImageMat = result.fingerPointerResult.highlightImage;
+        if (readController.prevImage != null) {
+            viewImageMat = readController.prevImage.clone();
         } else {
             viewImageMat = resizedImage;
         }
+
+        Bitmap initial_bm;
+        initial_bm = Bitmap.createBitmap(viewImageMat.cols(), viewImageMat.rows(), Bitmap.Config.ARGB_8888);
 
         Utils.matToBitmap(viewImageMat, initial_bm);
 

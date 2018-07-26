@@ -143,7 +143,7 @@ public class PointerIdentifier {
 
 		// Get initial mask
 
-		mog2.apply(inputImageHSV, handMask,0.01);
+		mog2.apply(inputImageHSV, handMask,0.05);
 
 		// Erode to remove small specks and dilate to restore image back to size
 
