@@ -55,7 +55,7 @@ public class PointerIdentifier {
 		int numMeasured = 2;
 		kalman = new KalmanFilter(numDynamic,numMeasured,0,CvType.CV_32F);
 
-		float friction = (float) 0.94;
+		float friction = (float) 0.5;
 
 		//set transition matrix
 		float[] tM = { 1,0,1,0,
@@ -79,7 +79,7 @@ public class PointerIdentifier {
 
 		//Process noise Covariance matrix
 		Mat processNoiseCov=Mat.eye(numDynamic,numDynamic,CvType.CV_32F);
-		processNoiseCov=processNoiseCov.mul(processNoiseCov,1e-5);
+		processNoiseCov=processNoiseCov.mul(processNoiseCov,1e-2);
 		kalman.set_processNoiseCov(processNoiseCov);
 
 		//Measurement noise Covariance matrix: reliability on our first measurement
@@ -124,26 +124,26 @@ public class PointerIdentifier {
 			statePt.y= estimated.get(1,0)[0];
 
 			// Highlight image
-			Imgproc.circle(highlightImage, fingerPointResult, 10, new Scalar(0,0,255,255),5);
-			//Imgproc.circle(highlightImage, predictPt, 10, new Scalar(255,0,0,255),5);
-			Imgproc.circle(highlightImage, statePt, 10, new Scalar(0,255,0,255),5);
+            Imgproc.drawMarker(highlightImage,fingerPointResult,new Scalar(0,0,255,255),Imgproc.MARKER_CROSS,20,3,0);
+            Imgproc.drawMarker(highlightImage,statePt,new Scalar(0,255,0,255),Imgproc.MARKER_CROSS,20,3,0);
 
-			return new FingerResult(handMask,highlightImage,fingerPointResult);
+            return new FingerResult(handMask,highlightImage,statePt);
 		} else {
 
-			Imgproc.circle(highlightImage, predictPt, 10, new Scalar(255,255,0,255),5);
+			Imgproc.drawMarker(highlightImage,predictPt,new Scalar(255,0,255,255),Imgproc.MARKER_CROSS,20,3,0);
 			return new FingerResult(handMask,highlightImage,predictPt);
 		}
 	}
 
 	public Mat getHandMaskFromImage(Mat inputImageHSV, double screenWidth, double screenHeight) {
 		Mat handMask = new Mat();
-		double elementWidthPerc = 0.02;
+		double elementWidthPerc = 0.01;
 		double elementHeightPerc = 0.05;
 
 		// Get initial mask
 
-		mog2.apply(inputImageHSV, handMask,0.05);
+        //mog2.apply(inputImageHSV, handMask,0.5);
+        mog2.apply(inputImageHSV, handMask,0.9);
 
 		// Erode to remove small specks and dilate to restore image back to size
 

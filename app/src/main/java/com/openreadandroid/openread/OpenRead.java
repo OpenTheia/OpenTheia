@@ -39,7 +39,7 @@ public class OpenRead {
         WAITING
     };
 
-	public static int lowScreenResolution = 500;
+	public static int lowScreenResolution = 800;
 	public static int highScreenResolution = 1400;
 	public static int cameraSwitchDelay = 4000;
 	
@@ -116,6 +116,7 @@ public class OpenRead {
             ScreenElement selectedElem;
 
             // Logic to detect if on an element
+            // TODO: Change this to have a counter in each screen element and if it's counted up to a value then hit it otherwise decrement
             if (fingerPointerResult.fingerFound) {
                 selectedElem = currentScreen.GetElementAtPoint(fingerPointerResult.fingerPoint.x / inputHighlightImage.width(),fingerPointerResult.fingerPoint.y / inputHighlightImage.height());
             } else {

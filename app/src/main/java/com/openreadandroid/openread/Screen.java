@@ -48,8 +48,6 @@ public class Screen {
         double width = boundingRect.width() * 1.0 / screenWidth;
         double height = boundingRect.height() * 1.0 / screenHeight;
 
-        // Removed padding for now
-        /*
         double w_pad = calculate_padding(width);
         double h_pad = calculate_padding(height);
 
@@ -61,7 +59,6 @@ public class Screen {
         if(height> 1) height = 1;
         if(xpos < 0) xpos = 0;
         if(ypos < 0) ypos = 0;
-        */
 
         Log.d(TAG,"Increasing width and height");
 
