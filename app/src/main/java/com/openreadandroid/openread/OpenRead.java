@@ -40,8 +40,8 @@ public class OpenRead {
     };
 
 	public static int lowScreenResolution = 800;
-	public static int highScreenResolution = 1400;
-	public static int cameraSwitchDelay = 4000;
+	public static int highScreenResolution = 2500;
+	public static int cameraSwitchDelay = 2500;
 	
 	ScreenIdentifier screenGrabber;
 	PointerIdentifier fingerPointerGrabber;
