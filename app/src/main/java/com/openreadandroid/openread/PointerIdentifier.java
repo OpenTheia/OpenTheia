@@ -46,6 +46,9 @@ public class PointerIdentifier {
 	BackgroundSubtractorMOG2 mog2;
 	KalmanFilter kalman;
 
+	// The size of our finger
+	public int pointerRadius = 25;
+
 	public PointerIdentifier() {
 		mog2 = Video.createBackgroundSubtractorMOG2();
 		mog2.setDetectShadows(false);
@@ -126,12 +129,15 @@ public class PointerIdentifier {
 			// Highlight image
             Imgproc.drawMarker(highlightImage,fingerPointResult,new Scalar(0,0,255,255),Imgproc.MARKER_CROSS,20,3,0);
             Imgproc.drawMarker(highlightImage,statePt,new Scalar(0,255,0,255),Imgproc.MARKER_CROSS,20,3,0);
+            Imgproc.circle(highlightImage,statePt,pointerRadius,new Scalar(0,255,0,255),2);
 
             return new FingerResult(handMask,highlightImage,statePt);
 		} else {
 
 			Imgproc.drawMarker(highlightImage,predictPt,new Scalar(255,0,255,255),Imgproc.MARKER_CROSS,20,3,0);
-			return new FingerResult(handMask,highlightImage,predictPt);
+            Imgproc.circle(highlightImage,predictPt,pointerRadius,new Scalar(255,0,255,255),2);
+
+            return new FingerResult(handMask,highlightImage,predictPt);
 		}
 	}
 

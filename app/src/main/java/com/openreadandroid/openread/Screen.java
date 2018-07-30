@@ -23,6 +23,9 @@ public class Screen {
     // TAG used for debugging purposes
     private static final String TAG = "Screen";
 
+    private int screenWidth;
+    private int screenHeight;
+
     public Screen() {
         elements = new ArrayList<ScreenElement>();
     }
@@ -36,6 +39,9 @@ public class Screen {
 
             elements.add(generateScreenElement(textBlock, screenWidth, screenHeight, elements.size()));
         }
+
+        this.screenWidth = screenWidth;
+        this.screenHeight = screenHeight;
 
     }
 
@@ -88,6 +94,19 @@ public class Screen {
 
         for (int i = 0; i < elements.size(); i++) {
             if (elements.get(i).IsLocationWithinElement(x,y)) {
+                return elements.get(i);
+            }
+        }
+
+        // If nothing was found just return null
+
+        return null;
+    }
+
+    public ScreenElement GetElementAtPoint(double x, double y,double radius) {
+
+        for (int i = 0; i < elements.size(); i++) {
+            if (elements.get(i).IsLocationWithinElement(x,y,radius / screenWidth,radius / screenHeight)) {
                 return elements.get(i);
             }
         }

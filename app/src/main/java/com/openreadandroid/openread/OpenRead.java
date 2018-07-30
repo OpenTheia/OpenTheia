@@ -136,7 +136,10 @@ public class OpenRead {
         currentScreen.decrementAllScreenElements();
 
         if (pointerResult.fingerFound) {
-            selectedElem = currentScreen.GetElementAtPoint(pointerResult.fingerPoint.x / inputHighlightImage.width(),pointerResult.fingerPoint.y / inputHighlightImage.height());
+            selectedElem = currentScreen.GetElementAtPoint(
+                    pointerResult.fingerPoint.x / inputHighlightImage.width(),
+                    pointerResult.fingerPoint.y / inputHighlightImage.height(),
+                    fingerPointerGrabber.pointerRadius);
         } else {
             selectedElem = null;
         }
@@ -153,7 +156,6 @@ public class OpenRead {
 
         } else {
             onElemCounter = 0;
-            lastReadText = null;
         }
     }
 

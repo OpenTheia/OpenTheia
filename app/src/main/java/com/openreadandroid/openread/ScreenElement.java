@@ -35,7 +35,13 @@ public class ScreenElement implements Comparable<ScreenElement> {
         Boolean isInY = ( y < y_base + y_length) && (y > y_base);
 
         return (isInX && isInY);
+    }
 
+    public Boolean IsLocationWithinElement(double x, double y, double xpadding, double ypadding) {
+        Boolean isInX = ( x < (x_base + x_width + xpadding)) && (x > (x_base - xpadding));
+        Boolean isInY = ( y < (y_base + y_length + ypadding)) && (y > (y_base - ypadding));
+
+        return (isInX && isInY);
     }
 
     public String GetElementDescription() {
