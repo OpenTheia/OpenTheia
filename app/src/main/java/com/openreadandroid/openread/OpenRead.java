@@ -41,7 +41,7 @@ public class OpenRead {
 
 	public static int lowScreenResolution = 800;
 	public static int highScreenResolution = 2500;
-	public static int cameraSwitchDelay = 2500;
+	public static int cameraSwitchDelay = 3000;
 	
 	ScreenIdentifier screenGrabber;
 	PointerIdentifier fingerPointerGrabber;
@@ -104,38 +104,20 @@ public class OpenRead {
 	}
 	
 	public void analyzeImage(Mat inputMat) {
-		
+
+	    // Clone the input image
 		Mat inputHighlightImage = inputMat.clone();
         prevImage = inputHighlightImage;
 
         if (currentState == OpenReadState.TRACKING_FINGER) {
+            // Get where our finger is pointing
             PointerIdentifier.FingerResult fingerPointerResult = fingerPointerGrabber.getFingerPointer(inputMat,
                     inputHighlightImage,screenGrabber.getRefImage());
             currentScreen.highlightAllScreenElements(inputHighlightImage);
 
-            ScreenElement selectedElem;
+            // Determine if our finger is over any screen elements
+            performScreenElementLogic(fingerPointerResult, inputHighlightImage);
 
-            // Logic to detect if on an element
-            // TODO: Change this to have a counter in each screen element and if it's counted up to a value then hit it otherwise decrement
-            if (fingerPointerResult.fingerFound) {
-                selectedElem = currentScreen.GetElementAtPoint(fingerPointerResult.fingerPoint.x / inputHighlightImage.width(),fingerPointerResult.fingerPoint.y / inputHighlightImage.height());
-            } else {
-                selectedElem = null;
-            }
-
-            if (selectedElem != null) {
-                onElemCounter++;
-
-                if (onElemCounter > elemToReadCount) {
-                    // Read Element
-                    currentScreen.highlightScreenElement(inputHighlightImage,selectedElem, new Scalar(0,0,255,255));
-                    readText(selectedElem.GetElementDescription());
-                }
-
-            } else {
-                onElemCounter = 0;
-                lastReadText = null;
-            }
 
         } else if (currentState == OpenReadState.OBTAINING_OCR_SCREEN) {
             screenAnalyzer.analyzePhoto(inputMat);
@@ -143,6 +125,37 @@ public class OpenRead {
             switchStates(OpenReadState.TRACKING_FINGER);
         }
 	}
+
+    private void performScreenElementLogic(FingerResult pointerResult, Mat inputHighlightImage) {
+
+        // Logic to detect if on an element
+
+        ScreenElement selectedElem;
+
+        // Decrement the hover value of each screen element
+        currentScreen.decrementAllScreenElements();
+
+        if (pointerResult.fingerFound) {
+            selectedElem = currentScreen.GetElementAtPoint(pointerResult.fingerPoint.x / inputHighlightImage.width(),pointerResult.fingerPoint.y / inputHighlightImage.height());
+        } else {
+            selectedElem = null;
+        }
+
+        if (selectedElem != null) {
+
+            selectedElem.incrementHover();
+
+            if (selectedElem.isReadReady()) {
+                // Read Element
+                readText(selectedElem.GetElementDescription());
+                selectedElem.resetHover();
+            }
+
+        } else {
+            onElemCounter = 0;
+            lastReadText = null;
+        }
+    }
 
     private void readText(String textToRead) {
         if (!readingTextNoInterrupt) {

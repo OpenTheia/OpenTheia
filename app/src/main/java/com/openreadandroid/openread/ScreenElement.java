@@ -13,6 +13,11 @@ public class ScreenElement implements Comparable<ScreenElement> {
     private double y_length;
     private int id;
 
+    // A value used to determine whether the element is being hovered over (and should be read)
+    private double hoverValue;
+    private static double hoverIncrement = 0.45;
+    private static double hoverDecrement = 0.05;
+
     private String elementDescription;
 
     public ScreenElement(double inx, double iny, double inWidth, double inLength, String inText, int inId) {
@@ -22,6 +27,7 @@ public class ScreenElement implements Comparable<ScreenElement> {
         y_length = inLength;
         elementDescription = inText;
         id = inId;
+        hoverValue = 0;
     }
 
     public Boolean IsLocationWithinElement(double x, double y) {
@@ -50,6 +56,34 @@ public class ScreenElement implements Comparable<ScreenElement> {
         return (int)(((this.y_base - compareScreenElement.y_base) + (this.x_base - compareScreenElement.x_base)/5)*100);
         /* For Descending order do like this */
         //return compareage-this.studentage;
+    }
+
+    public void incrementHover() {
+        hoverValue += ScreenElement.hoverIncrement;
+        if (hoverValue > 1) {
+            hoverValue = 1;
+        }
+    }
+
+    public void decrementHover() {
+        if (hoverValue > 0) {
+            hoverValue -= ScreenElement.hoverDecrement;
+            if (hoverValue < 0) {
+                hoverValue = 0;
+            }
+        }
+    }
+
+    public void resetHover() {
+        hoverValue = 0;
+    }
+
+    public double getHoverValue() {
+        return hoverValue;
+    }
+
+    public Boolean isReadReady() {
+        return hoverValue >= 1;
     }
 
 }

@@ -107,7 +107,7 @@ public class Screen {
             for (int i = 0; i < elements.size(); i++) {
                 ScreenElement visitor = elements.get(i);
 
-                highlightScreenElement(inputImage,visitor, new Scalar(255,0,0,255));
+                highlightScreenElement(inputImage,visitor, new Scalar(255,visitor.getHoverValue() * 255,0,255));
 
             }
         }
@@ -131,6 +131,17 @@ public class Screen {
 
             for (int j = 0; j < 4; j++) {
                 Imgproc.line(inputImage,openCVPointList[j],openCVPointList[(j+1)%4], color, 3);
+            }
+        }
+    }
+
+    public void decrementAllScreenElements() {
+
+        if (elements != null) {
+            for (int i = 0; i < elements.size(); i++) {
+                ScreenElement visitor = elements.get(i);
+
+                visitor.decrementHover();
             }
         }
     }
