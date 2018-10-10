@@ -22,6 +22,7 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.android.Utils;
 
 import com.openreadandroid.openread.OpenRead;
+import com.openreadandroid.openread.OpenReadMovingCamera;
 
 // Main Activity - Created 2018-01-13
 // Initiates the Camera, and other UI elements. This class deals with everything related to the
@@ -63,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     // Open Read Controller
 
-    OpenRead readController;
+    OpenReadMovingCamera readController;
 
     // Constructor
     public MainActivity() {
@@ -94,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             }
         });
 
-        readController = new OpenRead(this.getApplicationContext(), javaCameraView);
+        readController = new OpenReadMovingCamera(this.getApplicationContext(), javaCameraView);
     }
 
     @Override
@@ -162,11 +163,9 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         readController.analyzeImage(resizedImage);
 
-        Mat viewImageMat;
+        Mat viewImageMat = readController.prevImage;
 
-        if (readController.prevImage != null) {
-            viewImageMat = readController.prevImage.clone();
-        } else {
+        if (viewImageMat == null) {
             viewImageMat = resizedImage;
         }
 
